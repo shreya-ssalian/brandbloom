@@ -1,0 +1,1 @@
+AI tools (Claude) were used to help plan the project and to assist with code generation and debugging. All code was reviewed and tested by the team.
