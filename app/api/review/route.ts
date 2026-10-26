@@ -166,7 +166,7 @@ export async function POST(req: Request) {
       if (!dup) found.push(f);
     }
   } catch (e: any) {
-    aiNote = `The AI check was unavailable (${e?.message}). Only rule-based checks ran.`;
+    aiNote = `The AI check was unavailable (${e?.message}${e?.cause ? " - " + (e.cause.code || e.cause.message) : ""}). Only rule-based checks ran.`;
   }
 
   const status = found.some((f) => f.severity !== "minor")
