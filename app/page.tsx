@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import ImageCheck from "./ImageCheck";
+import Insights, { makeSeed } from "./Insights";
 
 type Finding = {
   ruleId: string; ruleText: string; quote: string; issue: string;
@@ -42,7 +43,7 @@ const stateNote = {
 };
 
 export default function Home() {
-  const [role, setRole] = useState<"creator" | "manager">("creator");
+  const [role, setRole] = useState<"creator" | "manager" | "insights">("creator");
   const [text, setText] = useState(samples[0]);
   const [status, setStatus] = useState("");
   const [findings, setFindings] = useState<Finding[]>([]);
@@ -149,7 +150,7 @@ export default function Home() {
           </div>
           <div className="rounded border bg-white p-1 text-sm">
             <span className="px-2 text-gray-500">Demo role:</span>
-            {(["creator", "manager"] as const).map((r) => (
+            {(["creator", "manager", "insights"] as const).map((r) => (
               <button key={r} onClick={() => setRole(r)}
                 className={`rounded px-3 py-1 capitalize ${role === r ? "bg-green-700 text-white" : "text-green-800"}`}>
                 {r}
@@ -219,7 +220,9 @@ export default function Home() {
                 </button>
               </section>
             )}
+
             <ImageCheck />
+
             <h2 className="mt-10 text-xl font-bold text-green-800">Your submissions</h2>
             {subs.length === 0 && <p className="mt-2 text-sm text-gray-600">Nothing submitted yet.</p>}
             <ul className="mt-2 space-y-3">
@@ -281,6 +284,14 @@ export default function Home() {
               ))}
             </ul>
           </>
+        )}
+
+        {role === "insights" && (
+          <Insights
+            subs={subs}
+            onSeed={() => setSubs((all) => [...makeSeed(), ...all.filter((s) => !String(s.id).startsWith("seed-"))])}
+            onClear={() => setSubs([])}
+          />
         )}
       </div>
     </main>
