@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import ImageCheck from "./ImageCheck";
 
 type Finding = {
   ruleId: string; ruleText: string; quote: string; issue: string;
@@ -218,7 +219,7 @@ export default function Home() {
                 </button>
               </section>
             )}
-
+            <ImageCheck />
             <h2 className="mt-10 text-xl font-bold text-green-800">Your submissions</h2>
             {subs.length === 0 && <p className="mt-2 text-sm text-gray-600">Nothing submitted yet.</p>}
             <ul className="mt-2 space-y-3">
