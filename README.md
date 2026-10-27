@@ -1,102 +1,52 @@
-# BrandBloom 🌱
+# 🌱 BrandBloom
 
 **Grow consistently. Publish confidently.**
 
-BrandBloom is a brand-governance tool. Content goes in, it is checked against a company's approved brand guidelines, the issues come back explained with their source, and a human makes the final decision.
+BrandBloom is a pre-publication brand governance tool. Bud, the AI guardian, checks content against approved brand guidelines, terminology and facts. It explains each issue, cites the rule behind it, and suggests a fix. Humans make every final decision.
 
-- **Live app:** https://brandbloom-six.vercel.app
-- **Sample brand kit:** GreenLeaf Organics (a fictional plant-based snack brand)
+**Live demo:** https://brandbloom-six.vercel.app
+Team KAIRO 2.O | Codex 48 Round 2
 
-## How to try it (no setup needed)
+## Try it (no login needed)
+1. As **Creator**, click Sample 1, then **Review with Bud**.
+2. Accept or reject findings, then **Submit for approval**.
+3. Switch to **Manager**, comment, and **Approve** or **Request changes**.
+4. Switch back to Creator, **Revise** and resubmit.
+5. Open **Insights** and click **Load sample history**.
+6. Try the **Image and accessibility check**.
 
-1. Open the live app. You start as **Creator**.
-2. Click **Sample 1**, then **Review with Bud**.
-3. Read the findings. Each one shows the quote, the rule it breaks, and a plain-language explanation. Use **Accept fix**, **Reject** or **Dismiss**.
-4. Click **Submit for approval**. It appears under *Your submissions* as "Pending review".
-5. Switch **Demo role** to **Manager**. Click **Request changes** (with a comment) or **Approve**.
-6. Switch back to **Creator**, click **Revise this content**, resubmit, then approve as Manager.
-7. Open **Insights** and click **Load sample history** to see the dashboard.
-8. Try the **Image and accessibility check** at the bottom of the Creator page.
+## Core rule: "No source, no flag"
+Every finding cites a rule from the brand kit. AI findings are dropped unless the rule ID exists and the quoted text appears in the content. Claims with no approved source are marked **Unverified** and sent to a human.
 
-## What it does
+## How it works
+- **Rule checks (plain code):** terminology, hype words, ALL CAPS, exclamation marks, unsupported claims, colour palette, contrast ratio, alt text.
+- **AI check (Gemini):** tone and claim support using only the brand kit, with retry and a fallback model.
+- **Workflow:** submit, manager approve or request changes, comments, revision history.
+- **Insights:** most frequent violations and Guideline Health (rules creators often reject).
 
-**Text review**
-- Checks content against the brand kit: voice rules, approved terminology, approved facts and the claims policy.
-- Deterministic code checks (same result every time): unapproved terms, hype words, ALL CAPS, repeated exclamation marks, and unsupported claims or statistics such as "number one" or "10,000 happy customers".
-- An AI layer (Google Gemini) adds a second opinion on tone and on facts that contradict the brand kit.
-- **No source, no flag:** every finding must cite a real rule ID and quote text that exists in the content. Anything else is discarded.
-- **Unverified, not guessed:** a claim or statistic with no approved source is marked *Unverified* and left for a human to decide.
-- Overall status: *Healthy Growth*, *Needs Pruning* or *Needs Care*.
+## Tech
+Next.js (App Router, TypeScript, Tailwind), Gemini API, Vercel.
 
-**Human approval workflow**
-- Creator submits, Manager approves or requests changes with a comment, Creator revises and resubmits.
-- Versions (v1, v2…) and a timestamped history show who did what.
+## Run locally
 
-**Image and accessibility check** (exact rules, no AI)
-- Brand palette, text contrast ratio against the 4.5:1 standard, and alt text.
+## Run locally
 
-**Insights**
-- A dashboard of review and approval history, with sample data to explore.
+1. Clone the repo and install packages:
 
-## Reliability
+   git clone https://github.com/shreya-ssalian/brandbloom.git
+   cd brandbloom
+   npm install
 
-The AI call has a 12 second timeout and a fallback model. If the AI is slow or unavailable, the rule-based checks still run and the page shows a clear note, so the product never hangs.
+2. Create a file called .env.local in the project root with:
 
-## Tech stack
+   GEMINI_API_KEY=your-own-gemini-key
+   GEMINI_MODEL=gemini-2.5-flash
+   GEMINI_FALLBACK_MODEL=gemini-3.5-flash
 
-- Next.js (App Router) and TypeScript
-- Serverless API route at `/api/review`
-- Google Gemini API for the AI layer
-- Deployed on Vercel from GitHub
+3. Start the app:
 
-## Project structure
+   npm run dev
 
-```
-app/
-  page.tsx              Main Creator / Manager UI
-  ImageCheck.tsx        Image and accessibility check
-  Insights.tsx          Insights dashboard
-  api/review/route.ts   Review API: code checks, then AI checks
-data/
-  brandkit.ts           Structured brand kit (rules, terms, facts, policies, each with an ID)
-```
+4. Open http://localhost:3000
 
-## Run it locally
-
-```bash
-git clone https://github.com/shreya-ssalian/brandbloom.git
-cd brandbloom
-npm install
-```
-
-Create a file named `.env.local` in the project root:
-
-```
-GEMINI_API_KEY=your_key_here
-GEMINI_MODEL=gemini-2.5-flash
-GEMINI_FALLBACK_MODEL=gemini-2.5-flash-lite
-```
-
-Then start the app:
-
-```bash
-npm run dev
-```
-
-Open http://localhost:3000. Without an API key the app still works, using the rule-based checks only. Never commit `.env.local`.
-
-## Principles
-
-- AI findings are suggestions only. A human makes every final decision.
-- Findings must be traceable to a rule in the brand kit.
-- When there is no approved source, the app says so instead of guessing.
-
-## AI disclosure
-
-See [AI_DISCLOSURE.md](./AI_DISCLOSURE.md).
-
-## Planned next (Round 3)
-
-1. Real accounts and a database, so Creator and Manager roles and the audit trail are saved and shared.
-2. Upload your own brand guidelines and turn them into structured rules, terms and approved facts.
-3. AI vision checks for logos and images, plus support for Hindi and other Indian languages.
+Without a Gemini key the app still works. The rule-based checks run, and the AI check is skipped.

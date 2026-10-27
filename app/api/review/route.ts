@@ -81,6 +81,20 @@ function codeChecks(text: string): Finding[] {
       });
     }
   }
+
+  const stat = text.match(/\b\d[\d,.]*\+?\s*(happy\s+)?(customers|users|reviews|people|clients|stores)\b/i);
+  if (stat) {
+    const num = stat[0].match(/\d[\d,.]*/)![0];
+    const supported = brandKit.approvedFacts.some((f) => f.fact.includes(num));
+    if (!supported) {
+      out.push({
+        ruleId: "C1", ruleText: rules["C1"], quote: stat[0],
+        issue: `"${stat[0]}" is a statistic with no approved source. It is marked Unverified and needs human review.`,
+        severity: "unverified", source: "code",
+      });
+    }
+  }
+  
   const claim = text.match(/(number one|number 1|#1|\bbest\b|\bcures?\b|guaranteed)/i);
   if (claim) {
     out.push({
