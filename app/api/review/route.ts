@@ -69,18 +69,6 @@ function codeChecks(text: string): Finding[] {
       severity: "minor", source: "code",
     });
   }
-  const stat = text.match(/\b\d[\d,.]*\+?\s*(happy\s+)?(customers|users|reviews|people|clients|stores)\b/i);
-  if (stat) {
-    const num = stat[0].match(/\d[\d,.]*/)![0];
-    const supported = brandKit.approvedFacts.some((f) => f.fact.includes(num));
-    if (!supported) {
-      out.push({
-        ruleId: "C1", ruleText: rules["C1"], quote: stat[0],
-        issue: `"${stat[0]}" is a statistic with no approved source. It is marked Unverified and needs human review.`,
-        severity: "unverified", source: "code",
-      });
-    }
-  }
 
   const stat = text.match(/\b\d[\d,.]*\+?\s*(happy\s+)?(customers|users|reviews|people|clients|stores)\b/i);
   if (stat) {
@@ -94,7 +82,7 @@ function codeChecks(text: string): Finding[] {
       });
     }
   }
-  
+
   const claim = text.match(/(number one|number 1|#1|\bbest\b|\bcures?\b|guaranteed)/i);
   if (claim) {
     out.push({
@@ -117,7 +105,7 @@ async function callGemini(prompt: string, key: string) {
           `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`,
           {
             method: "POST",
-            signal: AbortSignal.timeout(12000),
+            signal: AbortSignal.timeout(20000),
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               contents: [{ parts: [{ text: prompt }] }],
@@ -194,7 +182,11 @@ export async function POST(req: Request) {
   try {
     const ai = await aiChecks(text);
     for (const f of ai) {
-      const dup = found.some((c) => c.quote.toLowerCase() === f.quote.toLowerCase() && c.ruleId === f.ruleId);
+      const a = f.quote.toLowerCase();
+      const dup = found.some((c) => {
+        const b = c.quote.toLowerCase();
+        return c.ruleId === f.ruleId && (a.includes(b) || b.includes(a));
+      });
       if (!dup) found.push(f);
     }
   } catch (e: any) {
