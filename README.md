@@ -1,36 +1,102 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# BrandBloom 🌱
 
-## Getting Started
+**Grow consistently. Publish confidently.**
 
-First, run the development server:
+BrandBloom is a brand-governance tool. Content goes in, it is checked against a company's approved brand guidelines, the issues come back explained with their source, and a human makes the final decision.
+
+- **Live app:** https://brandbloom-six.vercel.app
+- **Sample brand kit:** GreenLeaf Organics (a fictional plant-based snack brand)
+
+## How to try it (no setup needed)
+
+1. Open the live app. You start as **Creator**.
+2. Click **Sample 1**, then **Review with Bud**.
+3. Read the findings. Each one shows the quote, the rule it breaks, and a plain-language explanation. Use **Accept fix**, **Reject** or **Dismiss**.
+4. Click **Submit for approval**. It appears under *Your submissions* as "Pending review".
+5. Switch **Demo role** to **Manager**. Click **Request changes** (with a comment) or **Approve**.
+6. Switch back to **Creator**, click **Revise this content**, resubmit, then approve as Manager.
+7. Open **Insights** and click **Load sample history** to see the dashboard.
+8. Try the **Image and accessibility check** at the bottom of the Creator page.
+
+## What it does
+
+**Text review**
+- Checks content against the brand kit: voice rules, approved terminology, approved facts and the claims policy.
+- Deterministic code checks (same result every time): unapproved terms, hype words, ALL CAPS, repeated exclamation marks, and unsupported claims or statistics such as "number one" or "10,000 happy customers".
+- An AI layer (Google Gemini) adds a second opinion on tone and on facts that contradict the brand kit.
+- **No source, no flag:** every finding must cite a real rule ID and quote text that exists in the content. Anything else is discarded.
+- **Unverified, not guessed:** a claim or statistic with no approved source is marked *Unverified* and left for a human to decide.
+- Overall status: *Healthy Growth*, *Needs Pruning* or *Needs Care*.
+
+**Human approval workflow**
+- Creator submits, Manager approves or requests changes with a comment, Creator revises and resubmits.
+- Versions (v1, v2…) and a timestamped history show who did what.
+
+**Image and accessibility check** (exact rules, no AI)
+- Brand palette, text contrast ratio against the 4.5:1 standard, and alt text.
+
+**Insights**
+- A dashboard of review and approval history, with sample data to explore.
+
+## Reliability
+
+The AI call has a 12 second timeout and a fallback model. If the AI is slow or unavailable, the rule-based checks still run and the page shows a clear note, so the product never hangs.
+
+## Tech stack
+
+- Next.js (App Router) and TypeScript
+- Serverless API route at `/api/review`
+- Google Gemini API for the AI layer
+- Deployed on Vercel from GitHub
+
+## Project structure
+
+```
+app/
+  page.tsx              Main Creator / Manager UI
+  ImageCheck.tsx        Image and accessibility check
+  Insights.tsx          Insights dashboard
+  api/review/route.ts   Review API: code checks, then AI checks
+data/
+  brandkit.ts           Structured brand kit (rules, terms, facts, policies, each with an ID)
+```
+
+## Run it locally
+
+```bash
+git clone https://github.com/shreya-ssalian/brandbloom.git
+cd brandbloom
+npm install
+```
+
+Create a file named `.env.local` in the project root:
+
+```
+GEMINI_API_KEY=your_key_here
+GEMINI_MODEL=gemini-2.5-flash
+GEMINI_FALLBACK_MODEL=gemini-2.5-flash-lite
+```
+
+Then start the app:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000. Without an API key the app still works, using the rule-based checks only. Never commit `.env.local`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Principles
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- AI findings are suggestions only. A human makes every final decision.
+- Findings must be traceable to a rule in the brand kit.
+- When there is no approved source, the app says so instead of guessing.
 
-## Learn More
+## AI disclosure
 
-To learn more about Next.js, take a look at the following resources:
+See [AI_DISCLOSURE.md](./AI_DISCLOSURE.md).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Planned next (Round 3)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Real accounts and a database, so Creator and Manager roles and the audit trail are saved and shared.
+2. Upload your own brand guidelines and turn them into structured rules, terms and approved facts.
+3. AI vision checks for logos and images, plus support for Hindi and other Indian languages.
