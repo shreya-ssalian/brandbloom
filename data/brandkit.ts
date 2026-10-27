@@ -22,8 +22,7 @@ export const brandKit = {
   ],
   claimsPolicy: {
     id: "C1",
-    rule: "Any claim of being 'number one', 'best', 'cures', or 'guaranteed results' is not allowed unless an approved fact supports it. Health claims are never allowed.",
-  },
+    rule: "Any claim of being 'number one', 'best', 'cures', or 'guaranteed results', and any statistic or customer count, is not allowed unless an approved fact supports it. Health claims are never allowed.",  },
   visual: {
     palette: [
       { name: "Leaf Green", hex: "#2E7D5B" },

@@ -69,7 +69,18 @@ function codeChecks(text: string): Finding[] {
       severity: "minor", source: "code",
     });
   }
-
+  const stat = text.match(/\b\d[\d,.]*\+?\s*(happy\s+)?(customers|users|reviews|people|clients|stores)\b/i);
+  if (stat) {
+    const num = stat[0].match(/\d[\d,.]*/)![0];
+    const supported = brandKit.approvedFacts.some((f) => f.fact.includes(num));
+    if (!supported) {
+      out.push({
+        ruleId: "C1", ruleText: rules["C1"], quote: stat[0],
+        issue: `"${stat[0]}" is a statistic with no approved source. It is marked Unverified and needs human review.`,
+        severity: "unverified", source: "code",
+      });
+    }
+  }
   const claim = text.match(/(number one|number 1|#1|\bbest\b|\bcures?\b|guaranteed)/i);
   if (claim) {
     out.push({
@@ -83,24 +94,31 @@ function codeChecks(text: string): Finding[] {
 
 async function callGemini(prompt: string, key: string) {
   const models = [process.env.GEMINI_MODEL, process.env.GEMINI_FALLBACK_MODEL].filter(Boolean) as string[];
-  let lastErr = "";
+  let lastErr = "no model configured";
   for (const model of models) {
     for (let attempt = 0; attempt < 2; attempt++) {
-      const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: { responseMimeType: "application/json", temperature: 0.1 },
-          }),
-        }
-      );
+      let res: Response;
+      try {
+        res = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`,
+          {
+            method: "POST",
+            signal: AbortSignal.timeout(12000),
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: prompt }] }],
+              generationConfig: { responseMimeType: "application/json", temperature: 0.1, thinkingConfig: { thinkingBudget: 0 } },
+            }),
+          }
+        );
+      } catch {
+        lastErr = `timeout or network error (${model})`;
+        break; // skip to the fallback model
+      }
       if (res.ok) return await res.json();
       const detail = await res.text();
       lastErr = `${res.status}: ${detail.slice(0, 200)}`;
-      if (res.status !== 503 && res.status !== 429) break; // only retry busy errors
+      if (res.status !== 503 && res.status !== 429) break;
       await new Promise((r) => setTimeout(r, 1500));
     }
   }
