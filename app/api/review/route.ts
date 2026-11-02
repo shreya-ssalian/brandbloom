@@ -113,7 +113,7 @@ function codeChecks(text: string, rules: Record<string, string>): Finding[] {
 
 async function aiChecks(text: string, rules: Record<string, string>, extras: string[]): Promise<Finding[]> {
   const key = process.env.GEMINI_API_KEY;
-  if (!key) return [];
+  if (!key) throw new Error("GEMINI_API_KEY is not set");
 
   const extraBlock = extras.length
     ? `\nADDITIONAL APPROVED RULES (also citable):\n${extras.map((id) => `${id}: ${rules[id]}`).join("\n")}\n`
@@ -138,7 +138,7 @@ ${extraBlock}
 CONTENT:
 """${text}"""`;
 
-  const parsed = parseJsonArray(await callGemini(prompt, key));
+  const parsed = parseJsonArray(await callGemini(prompt, key, 15000));
 
   // NO SOURCE, NO FLAG: keep only findings with a real rule and a real quote
   return parsed
