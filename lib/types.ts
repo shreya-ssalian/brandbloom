@@ -21,5 +21,11 @@ export type Rule = {
   text: string; status: "proposed" | "approved"; version: number;
 };
 export type RuleHealth = {
-  ruleId: string; text: string; count: number; rejected: number; accepted: number; suggestion?: string;
+  ruleId: string; type: string; text: string; version: number;
+  flagged: number; changesRequested: number; approved: number;
+  rejectRate: number; needsAttention: boolean;
+};
+export type RuleSuggestion = {
+  ruleId: string; current: string; suggestion: string;
+  basedOn: { rejectedSubmissions: number };
 };
