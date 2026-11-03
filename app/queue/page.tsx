@@ -6,7 +6,8 @@ import { api, getMe } from "../components/api";
 type Finding = { ruleId: string; quote: string; issue: string; severity: string };
 type Sub = {
   id: string; title: string; lane: "fast" | "review" | "escalate"; riskScore: number;
-  state: string; findings: Finding[];
+  state: string; findings: Finding[]; kind?: string;
+  sections?: { title: string; findings?: Finding[] }[];
 };
 const LANES: { key: Sub["lane"]; label: string }[] = [
   { key: "escalate", label: "Escalate" },
@@ -23,7 +24,10 @@ export default function Queue() {
 
   const load = () => api("/api/submissions").then(setSubs).catch((e) => setError(e.message));
   useEffect(() => {
-    setCanDecide(["manager", "reviewer"].includes(getMe()?.role ?? ""));
+    const me = getMe();
+    if (!me) { window.location.href = "/login"; return; }
+    if (me.role === "creator") { window.location.href = "/"; return; }
+    setCanDecide(["manager", "reviewer"].includes(me.role));
     load();
   }, []);
 
@@ -64,6 +68,19 @@ export default function Queue() {
                       )}
                     </div>
                     <div style={{ fontSize: 13, color: "#555" }}>{s.state}</div>
+                    {s.kind === "document" && s.sections && (
+                      <details style={{ marginTop: 8, fontSize: 13 }}>
+                        <summary>Document · {s.sections.length} sections</summary>
+                        {s.sections.map((sec, i) => (
+                          <div key={i} style={{ marginTop: 6 }}>
+                            <b>{sec.title}</b> ({sec.findings?.length ?? 0})
+                            {(sec.findings ?? []).map((f, j) => (
+                              <div key={j} style={{ color: "#555" }}>· {f.severity}: “{f.quote}” [{f.ruleId}]</div>
+                            ))}
+                          </div>
+                        ))}
+                      </details>
+                    )}
                     {canDecide && s.state === "Pending review" && (
                       <div style={{ marginTop: 8 }}>
                         <input placeholder="Comment (optional)" value={comment[s.id] ?? ""}

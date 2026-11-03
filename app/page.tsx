@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import ImageCheck from "./ImageCheck";
 import Header from "./components/Header";
+import DocUpload from "./components/DocUpload";
 import { api, getMe } from "./components/api";
 
 type Finding = {
@@ -11,7 +12,7 @@ type Finding = {
 type Decision = "accepted" | "rejected";
 type Event = { time: string; actor: string; action: string; comment?: string };
 type Submission = {
-  id: string; version: number; text: string; reviewStatus: string;
+  id: string; kind?: string; title?: string; version: number; text: string; reviewStatus: string;
   findings: (Finding & { decision?: Decision })[];
   state: "Pending review" | "Changes requested" | "Approved to Bloom";
   history: Event[];
@@ -46,6 +47,8 @@ const stateNote = {
 // Accepts either camelCase or snake_case rows so a small naming difference doesn't break the page
 const norm = (r: any): Submission => ({
   id: r.id,
+  kind: r.kind,
+  title: r.title,
   version: r.version ?? 1,
   text: r.text ?? "",
   reviewStatus: r.reviewStatus ?? r.review_status ?? "",
@@ -199,6 +202,8 @@ export default function Home() {
           </section>
         )}
 
+        <DocUpload onSubmitted={loadSubs} />
+
         <ImageCheck />
 
         <h2 className="mt-10 text-xl font-bold text-green-800">Your submissions</h2>
@@ -210,10 +215,15 @@ export default function Home() {
               <div className="flex flex-wrap items-center gap-2">
                 <span className={`rounded-full px-3 py-1 text-sm font-semibold ${stateCls[s.state]}`}>{s.state}</span>
                 <span className="text-xs text-gray-600">{stateNote[s.state]} · v{s.version}</span>
+                {s.kind === "document" && <span className="rounded bg-gray-100 px-2 py-0.5 text-xs">Document</span>}
               </div>
-              <p className="mt-2 text-sm">{s.text}</p>
+              {s.kind === "document" && s.title && <p className="mt-2 text-sm font-semibold">{s.title}</p>}
+              <p className="mt-2 text-sm">{s.text.length > 300 ? s.text.slice(0, 300) + "…" : s.text}</p>
               <History s={s} />
-              {s.state === "Changes requested" && (
+              {s.state === "Changes requested" && s.kind === "document" && (
+                <p className="mt-3 text-sm text-orange-800">Changes requested. Fix the document and upload the corrected file above.</p>
+              )}
+              {s.state === "Changes requested" && s.kind !== "document" && (
                 <button onClick={() => revise(s)} className="mt-3 rounded bg-green-700 px-3 py-1 text-sm text-white">Revise this content</button>
               )}
             </li>
