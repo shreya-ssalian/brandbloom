@@ -5,7 +5,6 @@ import { api, getMe } from "../components/api";
 
 type Rule = { id: string; type: string; text: string; status: string; version?: number };
 
-// Accepts different field names from toRule so a naming difference doesn't break the page
 const norm = (r: any): Rule => ({
   id: r.ruleId ?? r.rule_id ?? r.id,
   type: r.type ?? "",
@@ -13,10 +12,6 @@ const norm = (r: any): Rule => ({
   status: r.status ?? "",
   version: r.version,
 });
-
-const typeColor: Record<string, string> = {
-  voice: "#dbeafe", terminology: "#ede9fe", fact: "#dcfce7", claims: "#fee2e2", accessibility: "#fef3c7",
-};
 
 export default function BrandRoots() {
   const [rules, setRules] = useState<Rule[] | null>(null);
@@ -64,57 +59,54 @@ export default function BrandRoots() {
   const proposed = (rules ?? []).filter((r) => r.status === "proposed");
   const approved = (rules ?? []).filter((r) => r.status === "approved");
 
-  const badge = (t: string) => (
-    <span style={{ background: typeColor[t] ?? "#eee", borderRadius: 4, padding: "1px 8px", fontSize: 12, fontWeight: 600 }}>
-      {t}
-    </span>
-  );
-
   return (
-    <main className="bb" style={{ maxWidth: 1100, margin: "0 auto", padding: 16, background: "#f0fff4", minHeight: "100vh" }}>
+    <main className="bb-page">
       <Header />
       <h2>Brand Roots</h2>
-      <p style={{ fontSize: 14, color: "#555" }}>
-        Paste your brand guidelines. Bud proposes rules, and nothing is used for reviews until a human approves it.
+      <p className="bb-lead">
+        Paste your brand guidelines and Bud proposes rules. Nothing is used in reviews until a person approves it.
         Only approved rules are used when content is checked.
       </p>
 
-      <div style={{ background: "#fff", border: "1px solid #cfe9d6", borderRadius: 8, padding: 12, marginBottom: 20 }}>
-        <textarea
-          value={guidelines} onChange={(e) => setGuidelines(e.target.value)} rows={6}
-          placeholder="Paste brand guidelines text here (20 to 15,000 characters)"
-          style={{ width: "100%", padding: 8, border: "1px solid #cfe9d6", borderRadius: 8 }}
-        />
-        <button disabled={extracting || guidelines.trim().length < 20} onClick={extract} style={{ marginTop: 8 }}>
-          {extracting ? "Bud is reading... (up to 30 seconds)" : "Extract rules"}
-        </button>
-        <small style={{ marginLeft: 10, color: "#555" }}>{guidelines.length} / 15,000</small>
+      <div className="bb-card">
+        <label htmlFor="guidelines" className="bb-label">Brand guidelines</label>
+        <textarea id="guidelines" className="bb-input" rows={6} value={guidelines}
+          onChange={(e) => setGuidelines(e.target.value)}
+          placeholder="Paste your guidelines here (20 to 15,000 characters)" />
+        <div className="bb-actions">
+          <button className="bb-btn" disabled={extracting || guidelines.trim().length < 20} onClick={extract}>
+            {extracting ? "Bud is reading... (up to 30 seconds)" : "Extract rules"}
+          </button>
+          <span className="bb-muted">{guidelines.length.toLocaleString()} / 15,000 characters</span>
+        </div>
       </div>
 
-      {error && <p style={{ color: "crimson" }}>{error}</p>}
-      {info && <p style={{ color: "#0a6b35" }}>{info}</p>}
-      {rules === null && !error && <p>Loading...</p>}
+      {error && <p className="bb-error" role="alert" style={{ marginTop: 16 }}>{error}</p>}
+      {info && <p className="bb-ok" style={{ marginTop: 16 }}>{info}</p>}
+      {rules === null && !error && <p className="bb-muted">Loading rules...</p>}
 
-      <div style={{ display: "grid", gap: 20, gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))" }}>
+      <div className="bb-two">
         <section>
           <h3>Proposed by Bud ({proposed.length})</h3>
           {proposed.length > 1 && (
-            <button disabled={busyId !== ""} onClick={() => act(proposed.map((r) => r.id), "approve")} style={{ marginBottom: 10 }}>
-              Approve all
-            </button>
+            <div className="bb-actions" style={{ marginBottom: 12 }}>
+              <button className="bb-btn" disabled={busyId !== ""} onClick={() => act(proposed.map((r) => r.id), "approve")}>
+                Approve all
+              </button>
+            </div>
           )}
-          {proposed.length === 0 && <small>Nothing waiting. Paste guidelines above to propose rules.</small>}
+          {proposed.length === 0 && <p className="bb-empty">Nothing waiting. Paste guidelines above to get proposed rules.</p>}
           {proposed.map((r) => (
-            <div key={r.id} style={{ background: "#fff", border: "1px solid #cfe9d6", borderRadius: 8, padding: 12, marginBottom: 10 }}>
-              <div style={{ marginBottom: 6 }}>{badge(r.type)} <small style={{ color: "#666" }}>{r.id}</small></div>
-              <textarea
-                value={edits[r.id] ?? r.text} rows={3}
-                onChange={(e) => setEdits((x) => ({ ...x, [r.id]: e.target.value }))}
-                style={{ width: "100%", padding: 6, border: "1px solid #cfe9d6", borderRadius: 6 }}
-              />
-              <div style={{ marginTop: 6 }}>
-                <button disabled={busyId !== ""} onClick={() => act([r.id], "approve")}>Approve</button>{" "}
-                <button className="secondary" disabled={busyId !== ""} onClick={() => act([r.id], "reject")}>Reject</button>
+            <div key={r.id} className="bb-card bb-rule" data-type={r.type}>
+              <div className="bb-rule__head">
+                <span className="bb-badge bb-badge--muted">{r.type}</span>
+                <span className="bb-muted">{r.id}</span>
+              </div>
+              <textarea className="bb-input" rows={3} value={edits[r.id] ?? r.text} aria-label={`Rule ${r.id} text`}
+                onChange={(e) => setEdits((x) => ({ ...x, [r.id]: e.target.value }))} />
+              <div className="bb-actions">
+                <button className="bb-btn" disabled={busyId !== ""} onClick={() => act([r.id], "approve")}>Approve</button>
+                <button className="bb-btn bb-btn--quiet" disabled={busyId !== ""} onClick={() => act([r.id], "reject")}>Reject</button>
               </div>
             </div>
           ))}
@@ -122,13 +114,14 @@ export default function BrandRoots() {
 
         <section>
           <h3>Approved rules ({approved.length})</h3>
-          {approved.length === 0 && <small>No approved rules yet.</small>}
+          {approved.length === 0 && rules !== null && <p className="bb-empty">No approved rules yet.</p>}
           {approved.map((r) => (
-            <div key={r.id} style={{ background: "#fff", border: "1px solid #cfe9d6", borderRadius: 8, padding: 12, marginBottom: 10 }}>
-              <div style={{ marginBottom: 4 }}>
-                {badge(r.type)} <small style={{ color: "#666" }}>{r.id}{r.version ? ` · v${r.version}` : ""}</small>
+            <div key={r.id} className="bb-card bb-rule" data-type={r.type}>
+              <div className="bb-rule__head">
+                <span className="bb-badge bb-badge--muted">{r.type}</span>
+                <span className="bb-muted">{r.id}{r.version ? ` · v${r.version}` : ""}</span>
               </div>
-              <div style={{ fontSize: 14 }}>{r.text}</div>
+              <div style={{ lineHeight: 1.5 }}>{r.text}</div>
             </div>
           ))}
         </section>
