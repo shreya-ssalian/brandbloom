@@ -33,7 +33,12 @@ export default function Health() {
     try {
       const s = await api("/api/brandkit/health/suggest", { ruleId });
       setSug(s); setDraft(s.suggestion);
-    } catch (e: any) { setError(e.message); }
+    } catch (e: any) {
+      const m = String(e.message ?? "");
+      setError(/503|429|high demand|timeout/i.test(m)
+        ? "Google's AI is busy right now. Please click the button again in a few seconds."
+        : m);
+    }
     setBusyId("");
   }
 
@@ -45,7 +50,12 @@ export default function Health() {
       setInfo(`Rule ${sug.ruleId} updated to v${r.version}. Future reviews use the new wording.`);
       setSug(null);
       await load();
-    } catch (e: any) { setError(e.message); }
+    } catch (e: any) {
+      const m = String(e.message ?? "");
+      setError(/503|429|high demand|timeout/i.test(m)
+        ? "Google's AI is busy right now. Please click the button again in a few seconds."
+        : m);
+    }
     setBusyId("");
   }
 

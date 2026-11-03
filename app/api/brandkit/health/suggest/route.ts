@@ -3,7 +3,7 @@ import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { getUser } from "@/lib/auth";
 import { callGemini, parseJsonArray } from "@/lib/gemini";
 
-export const maxDuration = 30;
+export const maxDuration = 60;
 
 export async function POST(req: Request) {
   const user = await getUser(req);
@@ -58,7 +58,7 @@ Return ONLY a JSON array with one object: [{"text": "..."}]`;
 
   let suggestion = "";
   try {
-    const parsed = parseJsonArray(await callGemini(prompt, key, 15000));
+    const parsed = parseJsonArray(await callGemini(prompt, key, 20000));
     suggestion = typeof parsed[0]?.text === "string" ? parsed[0].text.trim() : "";
   } catch (e: any) {
     return NextResponse.json({ error: `AI suggestion failed: ${e?.message}` }, { status: 502 });
